@@ -1,0 +1,58 @@
+<html>
+
+<canvas id="myCanvas" width="1024" height="768"></canvas>
+
+<script>
+
+	var canvas = document.getElementById('myCanvas');
+	var context = canvas.getContext('2d');
+	var centerX = canvas.width * 0.5;
+	var centerY = canvas.height * 0.5;
+	var radius = 5;
+	var colors = ['#FF0000','#00FF00','#0000FF','#FFFF00','#FF00FF','#00FFFF','#000000'];
+	var pingcount = 0;
+
+	var connection = new WebSocket('ws://localhost:3333/kinect');
+	
+	// When the connection is open, send some data to the server
+	connection.onopen = function () {
+		console.log('Websocket open');
+	};
+ 
+	// Log errors
+	connection.onerror = function (error) {
+		console.log('WebSocket Error ' + error);
+	};
+ 
+	// Log messages from the server
+	connection.onmessage = function (e) {
+	
+		context.clearRect ( 0 , 0 , canvas.width, canvas.height );
+		var json = JSON.parse(e.data);
+		
+		var l = json.length;
+		for(var i = 0; i < l; ++i) {
+		
+			var joints = json[i];
+		
+			for(var joint in joints) {
+		
+				if (joints.hasOwnProperty(joint)) {
+					context.beginPath();
+					context.arc( centerX + joints[joint].Position.X * centerX, centerY + joints[joint].Position.Y * -centerY, radius, 0, 2 * Math.PI, false);
+					context.fillStyle = colors[i];
+					context.fill();
+					context.stroke();
+				}
+			}
+		}
+		
+		++pingcount;
+		if(pingcount > 60) {
+			connection.send('Ping');
+			pingcount = 0;
+		}
+		
+	};
+</script>
+</html>

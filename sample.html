@@ -1,0 +1,71 @@
+<html>
+
+<canvas id="myCanvas" width="1024" height="768"></canvas>
+
+<script>
+
+	var canvas = document.getElementById('myCanvas');
+	var context = canvas.getContext('2d');
+	var centerX = canvas.width * 0.5;
+	var centerY = canvas.height * 0.5;
+	var pingcount = 0;
+	
+	var previousRight = [];
+	var colors = ['#FF0000','#00FF00','#0000FF','#FFFF00','#FF00FF','#00FFFF','#000000'];
+
+	var connection = new WebSocket('ws://localhost:3333/kinect');
+	
+	// When the connection is open, send some data to the server
+	connection.onopen = function () {
+		console.log('Websocket open');
+	};
+ 
+	// Log errors
+	connection.onerror = function (error) {
+		console.log('WebSocket Error ' + error);
+	};
+ 
+	// Log messages from the server
+	connection.onmessage = function (e) {
+	
+		var json = JSON.parse(e.data);
+		
+		var l = json.length;
+		for(var i = 0; i < l; ++i) {
+		
+			var joints = json[i];
+			
+			var posRight = json[i].HandRight.Position;
+		
+			if(previousRight[i]) {
+				drawLine(previousRight[i], posRight, colors[i]);
+			}
+
+			previousRight[i] = posRight;
+			
+			if(Math.abs(posRight.X - json[i].HandLeft.Position.X) < 0.1 &&
+				Math.abs(posRight.Y - json[i].HandLeft.Position.Y) < 0.1 ) {
+				context.clearRect ( 0 , 0 , canvas.width, canvas.height );
+			}
+		}
+		
+		++pingcount;
+		if(pingcount > 60) {
+			connection.send('Ping');
+			pingcount = 0;
+		}
+		
+	};
+	
+	function drawLine(start, end, color) {
+		context.beginPath();
+		context.strokeStyle = color;
+		
+		context.moveTo(centerX + start.X * centerX, centerY + start.Y * -centerY);
+		context.lineTo( centerX + end.X * centerX, centerY + end.Y * -centerY, radius);
+
+		context.closePath();
+		context.stroke();
+	}
+</script>
+</html>

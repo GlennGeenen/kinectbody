@@ -1,0 +1,4 @@
+packages/
+KinectBody/bin/
+KinectBody/obj/
+*.db
