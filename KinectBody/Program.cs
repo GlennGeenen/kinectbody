@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KinectBody
 {
     class Program
     {
-        private static SocketServer m_server = null;
+        private static KinectServer m_server = null;
 
         static void Main(string[] args)
         {
@@ -16,20 +12,19 @@ namespace KinectBody
 
             KinectController kinectController = new KinectController();
 
-            m_server = new SocketServer();
+            m_server = new KinectServer();
 
             kinectController.KinectReceivedBody += KinectReceivedBody;
 
             Console.WriteLine("Server started. Press any key to exit...");
             Console.Read();
 
-            m_server.Stop();
-
+            m_server.stop();
         }
 
         private static void KinectReceivedBody(object sender, KinectEventArgs e)
         {
-            m_server.Broadcast(e.bodyList);
+            m_server.sendMessage(e.bodyList);
         }
     }
 }
