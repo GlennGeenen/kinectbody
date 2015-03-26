@@ -1,7 +1,8 @@
 <html>
 
-<canvas id="myCanvas" width="1024" height="768"></canvas>
+<canvas id="myCanvas" width="1280" height="768"></canvas>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.2/underscore-min.js"></script>
 <script>
 
 	var canvas = document.getElementById('myCanvas');
@@ -11,12 +12,14 @@
 	var radius = 5;
 	var colors = ['#FF0000','#00FF00','#0000FF','#FFFF00','#FF00FF','#00FFFF','#000000'];
 	var pingcount = 0;
+	var trackingids = {};
 
 	var connection = new WebSocket('ws://localhost:3333/kinect');
 	
 	// When the connection is open, send some data to the server
 	connection.onopen = function () {
 		console.log('Websocket open');
+		ping();
 	};
  
 	// Log errors
@@ -30,29 +33,49 @@
 		context.clearRect ( 0 , 0 , canvas.width, canvas.height );
 		var json = JSON.parse(e.data);
 		
+		var tracking = [];
+		var id = 0;
+		
 		var l = json.length;
 		for(var i = 0; i < l; ++i) {
 		
-			var joints = json[i];
+			id = json[i].TrackingId;
+			
+			tracking.push(id);
+			var color = getColor(id);
+			
+			var joints = json[i].Joints;
 		
 			for(var joint in joints) {
 		
 				if (joints.hasOwnProperty(joint)) {
 					context.beginPath();
-					context.arc( centerX + joints[joint].Position.X * centerX, centerY + joints[joint].Position.Y * -centerY, radius, 0, 2 * Math.PI, false);
-					context.fillStyle = colors[i];
+					context.arc( centerX + joints[joint].Position.X * 300, centerY + joints[joint].Position.Y * -300, radius, 0, 2 * Math.PI, false);
+					context.fillStyle = color;
 					context.fill();
 					context.stroke();
 				}
 			}
 		}
-		
-		++pingcount;
-		if(pingcount > 60) {
-			connection.send('Ping');
-			pingcount = 0;
+		trackingids = _.pick(trackingids, tracking);
+	};
+	
+	function getColor(id) {
+	
+		if(!_.has(trackingids, id)) {
+			var tmpColors = _.difference(colors, _.values(trackingids));
+			trackingids[id] = tmpColors[0];
 		}
 		
-	};
+		return trackingids[id];
+	}
+	
+	function ping() {
+		if(connection.readyState === 2) {
+			connection.send('Ping');
+			setTimeout(ping,10000);
+		}
+	}
+	
 </script>
 </html>

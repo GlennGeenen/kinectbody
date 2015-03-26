@@ -1,5 +1,14 @@
 <html>
 
+<head>
+<title>Squares</title>
+<style>
+body {
+    background-color: #000000;
+}
+</style>
+</head>
+
 <canvas id="myCanvas" width="1024" height="768"></canvas>
 
 <script>
@@ -8,10 +17,9 @@
 	var context = canvas.getContext('2d');
 	var centerX = canvas.width * 0.5;
 	var centerY = canvas.height * 0.5;
+	var radius = 5;
+	var colors = ['#FF0000','#00FF00','#0000FF','#FFFF00','#FF00FF','#00FFFF','#FFFFFF'];
 	var pingcount = 0;
-	
-	var previousRight = [];
-	var colors = ['#FF0000','#00FF00','#0000FF','#FFFF00','#FF00FF','#00FFFF','#000000'];
 
 	var connection = new WebSocket('ws://localhost:3333/kinect');
 	
@@ -28,6 +36,7 @@
 	// Log messages from the server
 	connection.onmessage = function (e) {
 	
+		context.clearRect ( 0 , 0 , canvas.width, canvas.height );
 		var json = JSON.parse(e.data);
 		
 		var l = json.length;
@@ -35,18 +44,9 @@
 		
 			var joints = json[i].Joints;
 			
-			var posRight = json[i].HandRight.Position;
-		
-			if(previousRight[i]) {
-				drawLine(previousRight[i], posRight, colors[i]);
-			}
-
-			previousRight[i] = posRight;
-			
-			if(Math.abs(posRight.X - json[i].HandLeft.Position.X) < 0.1 &&
-				Math.abs(posRight.Y - json[i].HandLeft.Position.Y) < 0.1 ) {
-				context.clearRect ( 0 , 0 , canvas.width, canvas.height );
-			}
+			drawRect(joints.HandLeft.Position, colors[i]);
+			drawRect(joints.HandRight.Position, colors[i]);
+			drawRect(joints.Head.Position, colors[i]);
 		}
 		
 		++pingcount;
@@ -57,15 +57,15 @@
 		
 	};
 	
-	function drawLine(start, end, color) {
+	function drawRect(pos, color) {
+	
 		context.beginPath();
-		context.strokeStyle = color;
-		
-		context.moveTo(centerX + start.X * centerX, centerY + start.Y * -centerY);
-		context.lineTo( centerX + end.X * centerX, centerY + end.Y * -centerY, radius);
-
-		context.closePath();
+		context.rect(centerX + pos.X * centerX * 0.75, centerY + pos.Y * -centerY * 0.75,50,40);
+		context.fillStyle = color;
+		context.fill();
 		context.stroke();
+	
 	}
+	
 </script>
 </html>

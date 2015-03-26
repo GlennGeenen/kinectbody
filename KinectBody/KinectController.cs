@@ -10,7 +10,7 @@ namespace KinectBody
     {
         public string bodyList { get; private set; }
 
-        public KinectEventArgs(List<IReadOnlyDictionary<JointType, Joint>> bodyList)
+        public KinectEventArgs(List<GeenenBody> bodyList)
         {
             this.bodyList = JsonConvert.SerializeObject(bodyList);
         }
@@ -70,13 +70,13 @@ namespace KinectBody
                     {
                         frame.GetAndRefreshBodyData(this.bodies);
 
-                        List<IReadOnlyDictionary<JointType, Joint>> bodyList = new List<IReadOnlyDictionary<JointType, Joint>>();
+                        List<GeenenBody> bodyList = new List<GeenenBody>();
 
                         foreach (Body body in this.bodies)
                         {
                             if (body.IsTracked)
                             {
-                                bodyList.Add(body.Joints);
+                                bodyList.Add(new GeenenBody(body));
                             }
                         }
 
