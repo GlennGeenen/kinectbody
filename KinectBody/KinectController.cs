@@ -80,10 +80,7 @@ namespace KinectBody
                             }
                         }
 
-                        if (bodyList.Count > 0)
-                        {
-                            KinectReceivedBody(this, new KinectEventArgs(bodyList));
-                        }
+                        KinectReceivedBody(this, new KinectEventArgs(bodyList));
                         
                     }
                 }
