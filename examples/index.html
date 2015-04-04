@@ -3,6 +3,7 @@
 <canvas id="myCanvas" width="1920" height="1080"></canvas>
 
 <script src="underscore-min.js"></script>
+<script src="kinect.js"></script>
 <script>
 
 	var canvas = document.getElementById('myCanvas');
@@ -13,38 +14,26 @@
 	var colors = ['#FF0000','#00FF00','#0000FF','#FFFF00','#FF00FF','#00FFFF','#000000'];
 	var pingcount = 0;
 	var trackingids = {};
-
-	var connection = new WebSocket('ws://localhost:3333/kinect');
 	
-	// When the connection is open, send some data to the server
-	connection.onopen = function () {
-		console.log('Websocket open');
-		ping();
-	};
+	kinect.start();
+	kinect.addListener(analyzeKinect);
  
-	// Log errors
-	connection.onerror = function (error) {
-		console.log('WebSocket Error ' + error);
-	};
- 
-	// Log messages from the server
-	connection.onmessage = function (e) {
+	function analyzeKinect(bodies) {
 	
 		context.clearRect ( 0 , 0 , canvas.width, canvas.height );
-		var json = JSON.parse(e.data);
 		
 		var tracking = [];
 		var id = 0;
 		
-		var l = json.length;
+		var l = bodies.length;
 		for(var i = 0; i < l; ++i) {
 		
-			id = json[i].TrackingId;
+			id = bodies[i].TrackingId;
 			
 			tracking.push(id);
 			var color = getColor(id);
 			
-			var joints = json[i].Joints;
+			var joints = bodies[i].Joints;
 		
 			for(var joint in joints) {
 		
@@ -68,13 +57,6 @@
 		}
 		
 		return trackingids[id];
-	}
-	
-	function ping() {
-		if(connection.readyState === 2) {
-			connection.send('Ping');
-			setTimeout(ping,10000);
-		}
 	}
 	
 </script>
