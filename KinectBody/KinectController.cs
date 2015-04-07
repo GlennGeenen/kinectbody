@@ -74,7 +74,7 @@ namespace KinectBody
 
                         foreach (Body body in this.bodies)
                         {
-                            if (body.IsTracked)
+                            if (body.IsTracked && body.Joints[JointType.SpineMid].Position.Z > 1)
                             {
                                 bodyList.Add(new GeenenBody(body));
                             }
