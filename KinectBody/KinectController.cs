@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Microsoft.Kinect;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace KinectBody
 {
@@ -74,11 +75,21 @@ namespace KinectBody
 
                         foreach (Body body in this.bodies)
                         {
-                            if (body.IsTracked && body.Joints[JointType.SpineMid].Position.Z > 1)
+                            if (body.IsTracked)
                             {
-                                bodyList.Add(new GeenenBody(body));
+                                var splinePos = body.Joints[JointType.SpineMid].Position;
+                                if (splinePos.Z > 1 &&
+                                    splinePos.Z < 3 &&
+                                    splinePos.Y < 2 &&
+                                    splinePos.Y > -2)
+                                {
+                                    bodyList.Add(new GeenenBody(body));
+                                }
+
                             }
                         }
+
+                        bodyList.OrderBy(x => x.Joints[JointType.SpineMid].Position.Z);
 
                         KinectReceivedBody(this, new KinectEventArgs(bodyList));
                         
