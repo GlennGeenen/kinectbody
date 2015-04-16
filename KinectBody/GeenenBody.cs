@@ -12,11 +12,15 @@ namespace KinectBody
     {
         public IReadOnlyDictionary<JointType, Joint> Joints;
         public ulong TrackingId;
+        public string HandLeftState;
+        public string HandRightState;
 
         public GeenenBody(Body body)
         {
             this.Joints = body.Joints;
             this.TrackingId = body.TrackingId;
+            this.HandLeftState = body.HandLeftState.ToString();
+            this.HandRightState = body.HandRightState.ToString();
         }
 
     }
