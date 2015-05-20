@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="GeenenBody.cs" />
     <Compile Include="KinectController.cs" />
+    <Compile Include="KinectSmoothing.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="KinectServer.cs" />

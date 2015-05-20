@@ -23,6 +23,7 @@ namespace KinectBody
         private BodyFrameReader reader = null;
         private CoordinateMapper coordinateMapper = null;
         private Body[] bodies = null;
+        private KinectJointFilter[] filters = null;
 
         public event EventHandler<KinectEventArgs> KinectReceivedBody;
 
@@ -41,6 +42,13 @@ namespace KinectBody
                 this.reader = this.kinectSensor.BodyFrameSource.OpenReader();
                 this.reader.FrameArrived += this.Reader_FrameArrived;
             }
+
+            this.filters = new KinectJointFilter[] {new KinectJointFilter(), new KinectJointFilter()};
+            foreach (var filter in this.filters)
+            {
+                filter.Init();
+            }
+
         }
 
         public void Close()
@@ -71,25 +79,47 @@ namespace KinectBody
                     {
                         frame.GetAndRefreshBodyData(this.bodies);
 
+                        // Find bodies in the middle
+                        this.bodies.OrderBy(x => Math.Abs(x.Joints[JointType.SpineMid].Position.X));
+
                         List<GeenenBody> bodyList = new List<GeenenBody>();
 
+                        int i = 0;
                         foreach (Body body in this.bodies)
                         {
                             if (body.IsTracked)
                             {
                                 var splinePos = body.Joints[JointType.SpineMid].Position;
+
+                                // Check Position
+                                // Between 1 and 3 meters in front of kinect
+                                // Between -2 and 2 meters aside of kinect
                                 if (splinePos.Z > 1 &&
                                     splinePos.Z < 3 &&
                                     splinePos.Y < 2 &&
                                     splinePos.Y > -2)
                                 {
-                                    bodyList.Add(new GeenenBody(body));
+                                    // Filter joints
+                                    this.filters[i].UpdateFilter(body);
+                                    bodyList.Add(new GeenenBody(body, this.filters[i].getJoints()));
+
+                                    // Only return 2 bodies
+                                    if (2 == ++i)
+                                    {
+                                        break;
+                                    }
                                 }
 
                             }
                         }
 
-                        bodyList.OrderBy(x => x.Joints[JointType.SpineMid].Position.Z);
+                        // Left player always first
+                        bodyList.OrderBy(x => x.Joints[JointType.SpineMid].Position.X);
+
+                        foreach (var body in bodyList)
+                        {
+
+                        }
 
                         KinectReceivedBody(this, new KinectEventArgs(bodyList));
                         

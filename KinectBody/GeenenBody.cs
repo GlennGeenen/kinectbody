@@ -15,9 +15,9 @@ namespace KinectBody
         public string HandLeftState;
         public string HandRightState;
 
-        public GeenenBody(Body body)
+        public GeenenBody(Body body, IReadOnlyDictionary<JointType, Joint> joints)
         {
-            this.Joints = body.Joints;
+            this.Joints = joints;
             this.TrackingId = body.TrackingId;
             this.HandLeftState = body.HandLeftState.ToString();
             this.HandRightState = body.HandRightState.ToString();
