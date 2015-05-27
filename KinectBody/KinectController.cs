@@ -79,50 +79,33 @@ namespace KinectBody
                     {
                         frame.GetAndRefreshBodyData(this.bodies);
 
-                        // Find bodies in the middle
-                        this.bodies.OrderBy(x => Math.Abs(x.Joints[JointType.SpineMid].Position.X));
+                        // Find body closest to kinect
+                        Body closestBody = null;
+                        float closest = 9999;
 
-                        List<GeenenBody> bodyList = new List<GeenenBody>();
-
-                        int i = 0;
                         foreach (Body body in this.bodies)
                         {
                             if (body.IsTracked)
                             {
-                                var splinePos = body.Joints[JointType.SpineMid].Position;
-
-                                // Check Position
-                                // Between 1 and 3 meters in front of kinect
-                                // Between -2 and 2 meters aside of kinect
-                                if (splinePos.Z > 1 &&
-                                    splinePos.Z < 3 &&
-                                    splinePos.Y < 2 &&
-                                    splinePos.Y > -2)
+                                float z = body.Joints[JointType.SpineMid].Position.Z;
+                                if (z > 0.5 && z < closest)
                                 {
-                                    // Filter joints
-                                    this.filters[i].UpdateFilter(body);
-                                    bodyList.Add(new GeenenBody(body, this.filters[i].getJoints()));
-
-                                    // Only return 2 bodies
-                                    if (2 == ++i)
-                                    {
-                                        break;
-                                    }
+                                    closest = z;
+                                    closestBody = body;
                                 }
-
                             }
                         }
 
-                        // Left player always first
-                        bodyList.OrderBy(x => x.Joints[JointType.SpineMid].Position.X);
-
-                        foreach (var body in bodyList)
+                        if (closestBody != null)
                         {
+                            List<GeenenBody> bodyList = new List<GeenenBody>();
 
+                            // Filter
+                            this.filters[0].UpdateFilter(closestBody);
+                            bodyList.Add(new GeenenBody(closestBody, this.filters[0].getJoints()));
+
+                            KinectReceivedBody(this, new KinectEventArgs(bodyList));
                         }
-
-                        KinectReceivedBody(this, new KinectEventArgs(bodyList));
-                        
                     }
                 }
             }
